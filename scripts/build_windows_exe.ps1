@@ -24,7 +24,8 @@ $oneDir = "dist\\InterviewAssistant"
 $oneFile = "dist\\InterviewAssistant.exe"
 
 if (Test-Path $oneDir) {
-  Compress-Archive -Path "$oneDir\\*" -DestinationPath $zipPath -Force
+  # 压缩目录本体，避免通配符在空目录/特殊场景下报“路径无效”
+  Compress-Archive -Path $oneDir -DestinationPath $zipPath -Force
 }
 elseif (Test-Path $oneFile) {
   Compress-Archive -Path $oneFile -DestinationPath $zipPath -Force
