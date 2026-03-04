@@ -2,8 +2,19 @@ $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $PSScriptRoot
 Set-Location $Root
 
+Write-Output "[build] Host python:"
+python --version
+
+# CI 中必须使用 setup-python 注入的 python，而不是 py launcher（它可能选到 3.14）
+$pyVer = python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"
+Write-Output "[build] Using Python minor: $pyVer"
+if ([version]$pyVer -ge [version]"3.13") {
+  Write-Error "Python $pyVer is too new for current dependency stack. Please use Python 3.11/3.12."
+  exit 1
+}
+
 if (!(Test-Path ".venv")) {
-  py -3 -m venv .venv
+  python -m venv .venv
 }
 .\.venv\Scripts\Activate.ps1
 python -m pip install -U pip
