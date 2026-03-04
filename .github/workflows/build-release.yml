@@ -17,7 +17,7 @@ on:
       - 'v*'
 
 jobs:
-  build-macos-app:
+  build-macos:
     if: ${{ github.event_name == 'push' || github.event.inputs.target == 'macos' || github.event.inputs.target == 'all' }}
     runs-on: macos-latest
     steps:
@@ -25,32 +25,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Build macOS app bundle
-        run: bash scripts/build_macos_app.sh
+      - name: Build DMG
+        run: bash scripts/build_macos_dmg.sh
       - name: Upload mac artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: InterviewAssistant-macos-app
-          path: dist/InterviewAssistant.app
-
-  package-macos-dmg:
-    if: ${{ github.event_name == 'push' || github.event.inputs.target == 'macos' || github.event.inputs.target == 'all' }}
-    runs-on: macos-latest
-    needs: build-macos-app
-    steps:
-      - uses: actions/checkout@v4
-      - name: Download mac app artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: InterviewAssistant-macos-app
-          path: .
-      - name: Inspect downloaded files
-        run: |
-          pwd
-          find . -maxdepth 4 -name "InterviewAssistant.app" -print || true
-      - name: Package DMG
-        run: bash scripts/package_macos_dmg.sh
-      - name: Upload dmg artifact
         uses: actions/upload-artifact@v4
         with:
           name: InterviewAssistant-macos
