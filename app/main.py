@@ -38,6 +38,7 @@ os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
 # ──────────────────────────────────────────────────────────────────────────────
 
 import asyncio
+import importlib
 import logging
 import sys
 from typing import Optional
@@ -745,7 +746,8 @@ class AsyncWorkerThread(QThread):
         from config import RAG_ENABLED, RAG_FORCE_REBUILD
         self.sig_status.emit("🟡 初始化知识库...")
         try:
-            from rag_search import init_rag_fast
+            rag_mod = importlib.import_module("rag_search")
+            init_rag_fast = getattr(rag_mod, "init_rag_fast")
             await asyncio.get_event_loop().run_in_executor(
                 None,
                 lambda: init_rag_fast(
@@ -887,8 +889,10 @@ class AsyncWorkerThread(QThread):
             self._audio_proc.stop()
         self._llm_q = None
         try:
-            from rag_search import cancel_rag_build
-            cancel_rag_build()
+            rag_mod = importlib.import_module("rag_search")
+            cancel_rag_build = getattr(rag_mod, "cancel_rag_build", None)
+            if callable(cancel_rag_build):
+                cancel_rag_build()
         except Exception:
             pass
         for task in asyncio.all_tasks(self._loop):

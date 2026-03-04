@@ -4,6 +4,7 @@ llm_engine.py — LLM 调度引擎（OpenRouter + 可降级检索）
 
 import asyncio
 import hashlib
+import importlib
 import logging
 import re
 import time
@@ -32,7 +33,6 @@ from config import (
     WEB_SEARCH_ENABLED,
     WEB_SEARCH_MAX_RESULTS,
 )
-from rag_search import async_rag_search
 
 logger = logging.getLogger("LLMEngine")
 
@@ -95,6 +95,22 @@ SYSTEM_PROMPT = """\
 """
 
 _client: Optional[openai.AsyncOpenAI] = None
+
+
+async def _safe_rag_search(question: str, top_k: int) -> list[dict]:
+    """
+    运行时动态加载 RAG，避免打包阶段强依赖 langchain/torch。
+    若模块缺失或初始化失败，返回空结果并继续纯 LLM。
+    """
+    try:
+        mod = importlib.import_module("rag_search")
+        fn = getattr(mod, "async_rag_search", None)
+        if fn is None:
+            return []
+        return await fn(question, top_k=top_k)
+    except Exception as e:
+        logger.warning("RAG 动态加载失败，已降级为空: %s", e)
+        return []
 
 
 def _get_client() -> openai.AsyncOpenAI:
@@ -448,11 +464,7 @@ async def _handle_question(question: str, callback: UICallback) -> None:
     logger.info("开始处理问题: %s", question[:80])
     t0 = time.perf_counter()
 
-    try:
-        rag_results = await async_rag_search(question, top_k=RAG_TOP_K)
-    except Exception as e:
-        logger.warning("RAG 检索失败，已降级为空: %s", e)
-        rag_results = []
+    rag_results = await _safe_rag_search(question, top_k=RAG_TOP_K)
     web_results: list[dict] = []
 
     if WEB_SEARCH_ENABLED and OPENROUTER_WEB_PLUGIN_ENABLED:

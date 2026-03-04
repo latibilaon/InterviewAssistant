@@ -9,7 +9,11 @@ fi
 source .venv/bin/activate
 python -m pip install -U pip
 python -m pip install pyinstaller
-python -m pip install -r requirements.txt
+if [[ -f requirements-packaging.txt ]]; then
+  python -m pip install -r requirements-packaging.txt
+else
+  python -m pip install -r requirements.txt
+fi
 
 mkdir -p release
 LOG_PATH="release/pyinstaller-macos.log"

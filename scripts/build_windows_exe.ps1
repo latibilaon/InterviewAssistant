@@ -19,7 +19,12 @@ if (!(Test-Path ".venv")) {
 .\.venv\Scripts\Activate.ps1
 python -m pip install -U pip
 python -m pip install pyinstaller
-python -m pip install -r requirements.txt
+if (Test-Path "requirements-packaging.txt") {
+  python -m pip install -r requirements-packaging.txt
+}
+else {
+  python -m pip install -r requirements.txt
+}
 
 if (Test-Path build) { Remove-Item build -Recurse -Force }
 if (Test-Path dist) { Remove-Item dist -Recurse -Force }

@@ -1,0 +1,11 @@
+# Lightweight dependency set for desktop packaging (PyInstaller)
+# Goal: stable build speed and reduced artifact size
+
+PyQt6>=6.7.0
+openai>=1.0.0
+python-dotenv>=1.0.0
+numpy>=1.26.0
+sounddevice>=0.4.7
+faster-whisper>=1.0.0
+opencc-python-reimplemented>=0.1.7
+duckduckgo-search>=6.0.0
