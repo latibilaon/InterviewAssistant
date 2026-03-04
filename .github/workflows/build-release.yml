@@ -43,7 +43,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: InterviewAssistant-macos-app
-          path: dist
+          path: .
+      - name: Inspect downloaded files
+        run: |
+          pwd
+          find . -maxdepth 4 -name "InterviewAssistant.app" -print || true
       - name: Package DMG
         run: bash scripts/package_macos_dmg.sh
       - name: Upload dmg artifact
