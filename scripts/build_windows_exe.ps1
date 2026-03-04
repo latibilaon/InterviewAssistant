@@ -17,5 +17,25 @@ if (Test-Path release) { Remove-Item release -Recurse -Force }
 pyinstaller --noconfirm --clean --windowed --name InterviewAssistant app/main.py
 
 New-Item -ItemType Directory -Force -Path release | Out-Null
-Compress-Archive -Path dist\InterviewAssistant\* -DestinationPath release\InterviewAssistant-windows.zip -Force
+$zipPath = "release\\InterviewAssistant-windows.zip"
+if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+
+$oneDir = "dist\\InterviewAssistant"
+$oneFile = "dist\\InterviewAssistant.exe"
+
+if (Test-Path $oneDir) {
+  Compress-Archive -Path "$oneDir\\*" -DestinationPath $zipPath -Force
+}
+elseif (Test-Path $oneFile) {
+  Compress-Archive -Path $oneFile -DestinationPath $zipPath -Force
+}
+else {
+  Write-Error "PyInstaller output not found. Expected '$oneDir' or '$oneFile'."
+  if (Test-Path "dist") {
+    Write-Output "dist content:"
+    Get-ChildItem -Recurse dist | Select-Object FullName
+  }
+  exit 1
+}
+
 Write-Output "[OK] Windows package created: release\InterviewAssistant-windows.zip"
