@@ -13,10 +13,26 @@ python -m pip install -r requirements.txt
 if (Test-Path build) { Remove-Item build -Recurse -Force }
 if (Test-Path dist) { Remove-Item dist -Recurse -Force }
 if (Test-Path release) { Remove-Item release -Recurse -Force }
-
-pyinstaller --noconfirm --clean --windowed --name InterviewAssistant app/main.py
-
 New-Item -ItemType Directory -Force -Path release | Out-Null
+
+# 记录完整构建日志，便于 CI 排查
+$buildLog = "release\\pyinstaller-windows.log"
+$pyiArgs = @(
+  "--noconfirm",
+  "--clean",
+  "--windowed",
+  "--onedir",
+  "--name", "InterviewAssistant",
+  "app/main.py"
+)
+
+Write-Output "[build] Running: pyinstaller $($pyiArgs -join ' ')"
+& pyinstaller @pyiArgs 2>&1 | Tee-Object -FilePath $buildLog
+if ($LASTEXITCODE -ne 0) {
+  Write-Error "PyInstaller failed with exit code $LASTEXITCODE. See $buildLog"
+  exit $LASTEXITCODE
+}
+
 $zipPath = "release\\InterviewAssistant-windows.zip"
 if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
 
@@ -31,12 +47,25 @@ elseif (Test-Path $oneFile) {
   Compress-Archive -Path $oneFile -DestinationPath $zipPath -Force
 }
 else {
-  Write-Error "PyInstaller output not found. Expected '$oneDir' or '$oneFile'."
+  # 兜底：扫描 dist 下任意可发布目标
+  $candidates = @()
+  if (Test-Path "dist") {
+    $candidates += Get-ChildItem dist -Directory -ErrorAction SilentlyContinue
+    $candidates += Get-ChildItem dist -File -Filter *.exe -ErrorAction SilentlyContinue
+  }
+  if ($candidates.Count -gt 0) {
+    $target = $candidates[0].FullName
+    Write-Output "[build] Fallback packaging target: $target"
+    Compress-Archive -Path $target -DestinationPath $zipPath -Force
+  }
+  else {
+    Write-Error "PyInstaller output not found. Expected '$oneDir' or '$oneFile'. See $buildLog"
+  }
   if (Test-Path "dist") {
     Write-Output "dist content:"
     Get-ChildItem -Recurse dist | Select-Object FullName
   }
-  exit 1
+  if (!(Test-Path $zipPath)) { exit 1 }
 }
 
 Write-Output "[OK] Windows package created: release\InterviewAssistant-windows.zip"
