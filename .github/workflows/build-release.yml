@@ -2,27 +2,58 @@ name: build-release
 
 on:
   workflow_dispatch:
+    inputs:
+      target:
+        description: "Build target"
+        required: true
+        default: "windows"
+        type: choice
+        options:
+          - windows
+          - macos
+          - all
   push:
     tags:
       - 'v*'
 
 jobs:
-  build-macos:
+  build-macos-app:
+    if: ${{ github.event_name == 'push' || github.event.inputs.target == 'macos' || github.event.inputs.target == 'all' }}
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Build DMG
-        run: bash scripts/build_macos_dmg.sh
+      - name: Build macOS app bundle
+        run: bash scripts/build_macos_app.sh
       - name: Upload mac artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: InterviewAssistant-macos-app
+          path: dist/InterviewAssistant.app
+
+  package-macos-dmg:
+    if: ${{ github.event_name == 'push' || github.event.inputs.target == 'macos' || github.event.inputs.target == 'all' }}
+    runs-on: macos-latest
+    needs: build-macos-app
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download mac app artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: InterviewAssistant-macos-app
+          path: dist
+      - name: Package DMG
+        run: bash scripts/package_macos_dmg.sh
+      - name: Upload dmg artifact
         uses: actions/upload-artifact@v4
         with:
           name: InterviewAssistant-macos
           path: release/InterviewAssistant-macos.dmg
 
   build-windows:
+    if: ${{ github.event_name == 'push' || github.event.inputs.target == 'windows' || github.event.inputs.target == 'all' }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4

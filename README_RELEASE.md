@@ -8,7 +8,9 @@
 - `data/docs`：可选 RAG 文档目录
 - `data/index`：RAG 向量索引目录
 - `start.command` / `start.bat`：一键启动
-- `scripts/build_macos_dmg.sh`：构建 macOS DMG
+- `scripts/build_macos_app.sh`：仅构建 macOS `.app`
+- `scripts/package_macos_dmg.sh`：将已构建 `.app` 打包成 DMG
+- `scripts/build_macos_dmg.sh`：完整流程（build app + package dmg）
 - `scripts/build_windows_exe.ps1`：构建 Windows 包
 - `.github/workflows/build-release.yml`：CI 自动构建（exe+dmg）
 
@@ -22,6 +24,15 @@ cd InterviewAssistant
 ### macOS
 ```bash
 cd InterviewAssistant
+# 步骤1：只构建 .app
+bash scripts/build_macos_app.sh
+
+# 步骤2：只打包 dmg（不重复构建）
+bash scripts/package_macos_dmg.sh
+```
+
+或一键完整流程：
+```bash
 bash scripts/build_macos_dmg.sh
 ```
 
@@ -30,6 +41,12 @@ bash scripts/build_macos_dmg.sh
 cd Application/InterviewAssistant
 ./scripts/build_windows_exe.ps1
 ```
+
+## GitHub Actions 触发建议
+- `workflow_dispatch` 时可选 `target`：
+  - `windows`：只跑 Windows（不跑 macOS / DMG）
+  - `macos`：只跑 macOS（build app + package dmg）
+  - `all`：全部运行
 
 ## 发布前敏感信息扫描
 ```bash
