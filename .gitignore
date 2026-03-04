@@ -1,0 +1,23 @@
+# Runtime
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Secrets
+app/.env
+
+# Build artifacts
+build/
+dist/
+*.spec
+release/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data cache
+data/index/*
+!data/index/.gitkeep

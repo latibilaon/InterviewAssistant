@@ -1,0 +1,34 @@
+# ─────────────────────────────────────────────
+#  AI 面试辅助外脑 — Python 依赖清单
+#  生成日期：2026-03-03
+#  Python 版本：3.10+
+# ─────────────────────────────────────────────
+
+# ── M1: RAG 模块 ──────────────────────────────
+langchain>=0.3.0
+langchain-community>=0.3.0
+langchain-huggingface>=0.1.0
+langchain-text-splitters>=0.3.0
+faiss-cpu>=1.8.0                  # FAISS 向量数据库（CPU 版）
+sentence-transformers>=3.0.0      # HuggingFace Embedding 模型
+torch>=2.0.0                      # sentence-transformers 后端（CPU）
+unstructured>=0.15.0              # 文档加载备用解析器
+
+# ── M2: 音频捕获 & STT ────────────────────────
+sounddevice>=0.4.7                # 音频流（替代 pyaudio，numpy 原生接口，延迟更低）
+# macOS 需系统安装 portaudio（brew install portaudio）
+# torch 已在 M1 中声明（Silero VAD 共用）
+openai>=1.0.0                     # Whisper API（STT 模式 B）
+faster-whisper>=1.0.0             # 本地 Whisper（STT 模式 A，离线）
+opencc-python-reimplemented>=0.1.7  # 繁体转简体（可选但推荐）
+
+# ── M3: LLM & 搜索调度 ────────────────────────
+# openai 已在 M2 中声明（OpenRouter 兼容 OpenAI SDK，共用）
+duckduckgo-search>=6.0.0          # 轻量级联网搜索（含 AsyncDDGS）
+
+# ── M4: UI（预留）─────────────────────────────
+PyQt6>=6.7.0                      # 悬浮窗 UI 框架
+
+# ── 通用工具 ───────────────────────────────────
+python-dotenv>=1.0.0              # 环境变量 / API Key 管理
+numpy>=1.26.0                     # 向量计算基础库

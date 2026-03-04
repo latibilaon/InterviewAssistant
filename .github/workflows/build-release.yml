@@ -1,0 +1,39 @@
+name: build-release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build DMG
+        run: bash scripts/build_macos_dmg.sh
+      - name: Upload mac artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: InterviewAssistant-macos
+          path: release/InterviewAssistant-macos.dmg
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build EXE package
+        shell: pwsh
+        run: ./scripts/build_windows_exe.ps1
+      - name: Upload windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: InterviewAssistant-windows
+          path: release/InterviewAssistant-windows.zip
